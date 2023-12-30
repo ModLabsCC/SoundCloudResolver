@@ -1,0 +1,5 @@
+dist
+worker
+.wrangler
+node_modules
+.idea

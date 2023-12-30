@@ -1,0 +1,19 @@
+{
+  "name": "scr",
+  "version": "1.0.0",
+  "description": "FlawCra SoundCloud Resolver",
+  "main": "index.js",
+  "scripts": {
+    "start": "wrangler dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "raw-body": "^2.4.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}
