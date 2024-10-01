@@ -3,4 +3,4 @@ workers_dev = true
 main="index.js"
 compatibility_date = "2023-10-25"
 node_compat = true
-logpush = truec
+logpush = true
