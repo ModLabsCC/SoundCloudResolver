@@ -27,8 +27,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, backoff = 500) {
 
 async function serveAsset(request, env, ctx) {
     const url = new URL(request.url);
-    const cache = caches.default;
-    let response = await cache.match(request);
+    let response = await caches.default.match(request);
 
     try {
         if (!response) {
@@ -41,7 +40,7 @@ async function serveAsset(request, env, ctx) {
                         'Content-Type': tmpResp.headers.get("content-type")
                     };
                     response = new Response(tmpResp.body, {...tmpResp, headers, status: 200});
-                    await cache.put(request, response.clone());
+                    ctx.waitUntil(caches.default.put(request, response.clone()));
                 }).catch(function (err) {
                     response = new Response("Error while resolving URL: " + err.toString(), {status: 422});
                 });
@@ -142,6 +141,7 @@ async function serveAsset(request, env, ctx) {
                             headers['Content-Disposition'] = `filename="${tmpJson.user.username} - ${tmpJson.title}.mp3"`;
                             headers['X-Content-Duration'] = tmpJson.duration / 1000;
                             response = new Response(readable, {headers});
+                            ctx.waitUntil(caches.default.put(request, response.clone()));
                             break;
                         case "playlist":
                             let tracks = tmpJson.tracks;
@@ -163,6 +163,7 @@ async function serveAsset(request, env, ctx) {
                             };
                             response = new Response(outStr, {headers, statusText: "OK", status: 200});
                             response.status = 200;
+                            ctx.waitUntil(caches.default.put(request, response.clone()));
                             break;
                         default:
                             var headers = {
