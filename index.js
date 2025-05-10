@@ -1,6 +1,8 @@
-addEventListener('fetch', event => {
-    event.respondWith(handleRequest(event))
-})
+export default {
+    async fetch(request, env, ctx) {
+        return handleRequest(request, env, ctx);
+    },
+};
 
 const globalHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -8,15 +10,15 @@ const globalHeaders = {
     'Access-Control-Allow-Headers': '*'
 };
 
-async function serveAsset(event) {
-    const url = new URL(event.request.url);
+async function serveAsset(request, env, ctx) {
+    const url = new URL(request.url);
     const cache = caches.default;
-    let response = await cache.match(event.request);
+    let response = await cache.match(request);
 
     try {
         if (!response) {
             if (url.pathname === "/favicon.ico") {
-                await fetch("https://flawcra.cc/favicon.ico").then(async function (tmpResp) {
+                await fetch("https://modlabs.cc/favicon.ico").then(async function (tmpResp) {
                     const headers = {
                         ...globalHeaders,
                         'cache-control': 'public, max-age=14400',
@@ -24,7 +26,7 @@ async function serveAsset(event) {
                         'Content-Type': tmpResp.headers.get("content-type")
                     };
                     response = new Response(tmpResp.body, {...tmpResp, headers, status: 200});
-                    await cache.put(event.request, response.clone());
+                    await cache.put(request, response.clone());
                 }).catch(function (err) {
                     response = new Response("Error while resolving URL: " + err.toString(), {status: 422});
                 });
@@ -34,7 +36,7 @@ async function serveAsset(event) {
             let currentUrl = "https://w.soundcloud.com/player/";
 
             console.log(currentUrl);
-            let req = await fetch("https://w.soundcloud.com/player/");
+            let req = await fetch(currentUrl);
             req = await req.text();
             let jsFile = req.split("sndcdn.com/widget-9-")[1].split('.js')[0];
 
@@ -73,6 +75,8 @@ async function serveAsset(event) {
                             streamUrl = await fetch(streamUrl);
                             streamUrl = await streamUrl.json();
                             streamUrl = streamUrl.url;
+
+                            console.log("wrapped stream url", streamUrl)
 
                             // Implementing the Fetch HLS playlist, concatenate MP3 parts, and serve as a single MP3 file
                             let playlistResponse = await fetch(streamUrl);
@@ -175,15 +179,15 @@ async function serveAsset(event) {
 
 function generateOutStr(track) {
     let tmp = `#EXTINF:${track.duration / 1000} tvg-id="" tvg-name="${track.user.username} - ${track.title}" tvg-country="" tvg-language="" tvg-logo="" group-title="",${track.user.username} - ${track.title}\n`;
-    tmp += track.permalink_url.replace("soundcloud.com", "scr.flawcra.cc") + `\n`;
+    tmp += track.permalink_url.replace("soundcloud.com", "api.modlabs.cc/scr") + `\n`;
     return tmp
 }
 
-async function handleRequest(event) {
-    if (event.request.method === 'GET') {
-        let response= await serveAsset(event);
+async function handleRequest(request, env, ctx) {
+    if (request.method === 'GET') {
+        let response= await serveAsset(request, env, ctx);
         if (response.status > 399) {
-            response = new Response(response.statusText + `(${response.status}) (C)FlawCra`, {status: response.status})
+            response = new Response(response.statusText + `(${response.status}) (C)ModLabs`, {status: response.status})
         }
         return response
     } else {

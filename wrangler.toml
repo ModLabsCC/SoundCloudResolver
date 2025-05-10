@@ -2,7 +2,7 @@ name = "scr"
 workers_dev = true
 main="index.js"
 compatibility_date = "2023-10-25"
-node_compat = true
+compatibility_flags = [ "nodejs_compat" ]
 logpush = true
 
 [observability]
