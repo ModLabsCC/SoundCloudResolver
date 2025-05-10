@@ -10,6 +10,21 @@ const globalHeaders = {
     'Access-Control-Allow-Headers': '*'
 };
 
+async function fetchWithRetry(url, options = {}, retries = 3, backoff = 500) {
+    let lastError;
+    for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+            const response = await fetch(url, options);
+            if (response.ok) return response;
+            lastError = new Error(`Fetch failed (${response.status}): ${response.statusText}`);
+        } catch (err) {
+            lastError = err;
+        }
+        await new Promise(res => setTimeout(res, backoff * (attempt + 1)));
+    }
+    return fetch(url, options);
+}
+
 async function serveAsset(request, env, ctx) {
     const url = new URL(request.url);
     const cache = caches.default;
@@ -101,7 +116,7 @@ async function serveAsset(request, env, ctx) {
 
                                 try {
                                     for (let mediaUrl of mediaUrls) {
-                                        const partResponse = await fetch(mediaUrl);
+                                        const partResponse = await fetchWithRetry(mediaUrl);
                                         if (!partResponse.ok) {
                                             throw new Error(`Failed to fetch MP3 part: ${mediaUrl}`);
                                         }
@@ -124,7 +139,6 @@ async function serveAsset(request, env, ctx) {
                             };
                             headers['cache-control'] = "public, max-age=14400";
                             headers['Content-Type'] = "audio/mpeg";
-                            headers['Content-Encoding'] = "deflate";
                             headers['Content-Disposition'] = `filename="${tmpJson.user.username} - ${tmpJson.title}.mp3"`;
                             headers['X-Content-Duration'] = tmpJson.duration / 1000;
                             response = new Response(readable, {headers});
