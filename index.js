@@ -162,7 +162,6 @@ async function serveAsset(request, env, ctx) {
                                 'Content-Type': ctType
                             };
                             response = new Response(outStr, {headers, statusText: "OK", status: 200});
-                            response.status = 200;
                             ctx.waitUntil(caches.default.put(request, response.clone()));
                             break;
                         default:
